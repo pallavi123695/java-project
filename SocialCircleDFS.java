@@ -1,79 +1,52 @@
 package pallavi;
+
+
 import java.util.*;
 
 public class SocialCircleDFS {
-    // Adjacency list to represent the social network graph
-    private Map<String, List<String>> graph;
 
-    public SocialCircleDFS(Map<String, List<String>> graph) {
-        this.graph = graph;
+    private Map<String, List<String>> socialGraph = new HashMap<>();
+    private Set<String> visited = new HashSet<>();
+    private List<String> socialCircle = new ArrayList<>();
+    public void addConnection(String person1, String person2) {
+        socialGraph.computeIfAbsent(person1, k -> new ArrayList<>()).add(person2);
+        socialGraph.computeIfAbsent(person2, k -> new ArrayList<>()).add(person1);
     }
 
-    /**
-     * Recursive DFS to find all people in the same social circle as 'person'
-     */
-    public List<String> findSocialCircle(String person) {
-        Set<String> visited = new HashSet<>();
-        List<String> circle = new ArrayList<>();
-        dfsRecursive(person, visited, circle);
-        return circle;
-    }
+    public void dfs(String person) {
+        if (visited.contains(person)) return;
 
-    private void dfsRecursive(String person, Set<String> visited, List<String> circle) {
-        if (!graph.containsKey(person) || visited.contains(person)) {
-            return;
-        }
         visited.add(person);
-        circle.add(person);
-        for (String neighbor : graph.get(person)) {
-            if (!visited.contains(neighbor)) {
-                dfsRecursive(neighbor, visited, circle);
-            }
+        socialCircle.add(person);
+        System.out.println("Visited: " + person);
+
+        for (String friend : socialGraph.getOrDefault(person, new ArrayList<>())) {
+            dfs(friend);
         }
     }
 
-    /**
-     * Iterative DFS to find all people in the same social circle as 'person'
-     */
-    public List<String> findSocialCircleIterative(String person) {
-        Set<String> visited = new HashSet<>();
-        List<String> circle = new ArrayList<>();
-        Stack<String> stack = new Stack<>();
-
-        stack.push(person);
-        while (!stack.isEmpty()) {
-            String curr = stack.pop();
-            if (!visited.contains(curr)) {
-                visited.add(curr);
-                circle.add(curr);
-                if (graph.containsKey(curr)) {
-                    for (String neighbor : graph.get(curr)) {
-                        if (!visited.contains(neighbor)) {
-                            stack.push(neighbor);
-                        }
-                    }
-                }
-            }
-        }
-        return circle;
+    public List<String> getSocialCircle(String startPerson) {
+        visited.clear();
+        socialCircle.clear();
+        dfs(startPerson);
+        return socialCircle;
     }
 
-    // Example usage
     public static void main(String[] args) {
-        Map<String, List<String>> socialGraph = new HashMap<>();
-        socialGraph.put("Alice", Arrays.asList("Bob", "Charlie"));
-        socialGraph.put("Bob", Arrays.asList("Alice", "David"));
-        socialGraph.put("Charlie", Arrays.asList("Alice"));
-        socialGraph.put("David", Arrays.asList("Bob"));
-        socialGraph.put("Eve", Arrays.asList("Frank"));
-        socialGraph.put("Frank", Arrays.asList("Eve"));
+        SocialCircleDFS network = new SocialCircleDFS();
 
-        SocialCircleDFS finder = new SocialCircleDFS(socialGraph);
+        // Building the social network
+        network.addConnection("Alice", "Bob");
+        network.addConnection("Alice", "Charlie");
+        network.addConnection("Bob", "David");
+        network.addConnection("Eve", "Frank");
 
-        System.out.println("Recursive DFS (Alice): " + finder.findSocialCircle("Alice"));
-        System.out.println("Iterative DFS (Alice): " + finder.findSocialCircleIterative("Alice"));
+        System.out.println("Social Circle starting from Alice:");
+        List<String> circle1 = network.getSocialCircle("Alice");
+        System.out.println(circle1);
 
-        System.out.println("Recursive DFS (Eve): " + finder.findSocialCircle("Eve"));
-        System.out.println("Iterative DFS (Eve): " + finder.findSocialCircleIterative("Eve"));
+        System.out.println("\nSocial Circle starting from Eve:");
+       List<String> circle2 = network.getSocialCircle("Eve");
+        System.out.println(circle2);
     }
 }
